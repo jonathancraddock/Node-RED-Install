@@ -278,3 +278,81 @@ Find the `adminAuth` section and uncomment.
         }]
     },
 ```
+
+-----
+
+### DNS
+
+Create DNS record, if required, wait for it to propagate.
+
+-----
+
+### Create a Virtual Host, and point it at default `html` folder
+
+This can temporarily point at the default folder, as it will be edited to proxy NodeRED later.
+
+Name the virtual host as per your DNS record:
+```bash
+sudo nano /etc/apache2/sites-available/<domain>.conf
+```
+
+Give it a basic config:
+```bash
+<VirtualHost *:80>
+    ServerName <domain>
+    ServerAlias <domain> 
+    ServerAdmin webmaster@localhost
+    DocumentRoot /var/www/html
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+```
+
+Enable the new site, and disable the old default:
+```bash
+sudo a2ensite <domain>
+sudo a2dissite 000-default
+```
+
+Test config and reload:
+```bash
+sudo apache2ctl configtest
+sudo systemctl reload apache2
+```
+
+Check that it's live with `curl` or a browser.
+
+-----
+
+### Let's Encrypt
+
+Link -> https://certbot.eff.org/instructions?ws=apache&os=ubuntufocal
+
+Install snap and certbot:
+```bash
+sudo snap install core; sudo snap refresh core
+sudo snap install --classic certbot
+sudo ln -s /snap/bin/certbot /usr/bin/certbot
+```
+
+Request certificate:
+```bash
+sudo certbot --apache
+```
+
+Complete the prompts, then test renewal:
+```bash
+sudo certbot renew --dry-run
+```
+
+Check HTTPS version of page in a web browser.
+
+-----
+
+### Edit Apache config to point at NodeRED
+
+Link -> https://github.com/jonathancraddock/Notes-on-NodeRED
+
+-----
+
+
