@@ -226,7 +226,7 @@ Description=Node-RED
 After=syslog.target network.target
 
 [Service]
-ExecStart=/usr/local/bin/node-red-pi --max-old-space-size=128 -v
+ExecStart=/usr/bin/node-red --max-old-space-size=128 -v
 Restart=on-failure
 KillSignal=SIGINT
 
@@ -237,7 +237,7 @@ StandardOutput=syslog
 # non-root user to run as
 WorkingDirectory=/home/<username>/
 User=<username>
-Group=<username>
+Group=<groupname>
 
 [Install]
 WantedBy=multi-user.target
