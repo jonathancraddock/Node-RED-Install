@@ -102,9 +102,14 @@ Ensure that OpenSSH is allowed, and re-check the status of UFW:
 ```bash
 sudo ufw app list
 sudo ufw allow OpenSSH
+sudo ufw allow from <CIDR Notation> to any port 22
 sudo ufw enable
 sudo ufw status verbose
 ```
+^- *Take care if allowing only from a specifed IP range, to avoid accidental lockout!*
+
+> **Note**
+> The syntax `sudo ufw allow from 82.69.0.0/17 to any port 22` limits SSH connections to only the range provided by Zen Internet, for example.
 
 With UFW enabled, enable Fail2Ban:
 ```bash
@@ -119,3 +124,157 @@ sudo fail2ban-client status sshd
 
 -----
 
+> **Note**
+> Taking a snapshot here.
+
+-----
+
+### Installing Apache
+
+Update and install:
+```bash
+sudo apt update
+sudo apt install apache2
+```
+
+Check and update UFW rules:
+```bash
+sudo ufw app list
+sudo ufw allow in "Apache Full"
+sudo ufw status verbose
+```
+
+-----
+
+### Installing PHP
+
+Install and confirm version:
+```bash
+sudo apt install php libapache2-mod-php php-mysql
+php -v
+```
+
+Create a PHP file to test install, eg `/var/www/html/index.php`:
+```php
+<?php
+phpinfo();
+```
+
+-----
+
+### Generic Landing
+
+Empty the `/var/www/html/` folder and create a generic landing page:
+```bash
+cd /var/www/html/
+sudo rm *
+sudo nano index.html
+```
+
+Generic landing page:
+```html
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Hello, World!</title>
+</head>
+<body>
+	<p>Hello, World!</p>
+</body>
+</html>
+```
+
+-----
+
+> **Note**
+> Taking a snapshot here.
+
+-----
+
+### Installing NodeJS and NodeRED
+
+Node-RED recommends v16:
+```bash
+cd ~
+curl -sL https://deb.nodesource.com/setup_15.x -o nodesource_setup.sh
+sudo bash nodesource_setup.sh
+sudo apt install nodejs
+node -v
+npm -v
+```
+
+Use NPM to install NodeRED:
+```bash
+sudo npm install -g --unsafe-perm node-red node-red-admin
+```
+
+You can run / check version with:
+```bash
+node-red -v
+```
+<kbd>Ctrl</kbd> + <kbd>C</kbd> to quit.
+
+To ensure NodeRED runs on startup:
+```bash
+sudo nano /etc/systemd/system/node-red.service
+```
+
+Create the following config:
+```bash
+[Unit]
+Description=Node-RED
+After=syslog.target network.target
+
+[Service]
+ExecStart=/usr/local/bin/node-red-pi --max-old-space-size=128 -v
+Restart=on-failure
+KillSignal=SIGINT
+
+# log output to syslog as 'node-red'
+SyslogIdentifier=node-red
+StandardOutput=syslog
+
+# non-root user to run as
+WorkingDirectory=/home/<username>/
+User=<username>
+Group=<username>
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable:
+```bash
+sudo systemctl enable node-red
+```
+
+Starting and stopping, if required:
+```bash
+sudo systemctl start node-red
+sudo systemctl stop node-red
+```
+
+Generate a password hash:
+```bash
+node-red-admin hash-pw
+```
+
+Copy the hash, then edit the settings:
+```bash
+nano ~/.node-red/settings.js
+```
+
+Find the `adminAuth` section and uncomment.
+```javascript
+    /** To password protect the Node-RED editor and admin API, the following
+     * property can be used. See http://nodered.org/docs/security.html for details.
+     */
+    adminAuth: {
+        type: "credentials",
+        users: [{
+            username: "<username>",
+            password: "<hash>",
+            permissions: "*"
+        }]
+    },
+```
